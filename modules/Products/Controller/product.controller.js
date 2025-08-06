@@ -14,31 +14,31 @@ const uploadImagesProduct = uploadMultipleImgs([
 ]);
 
 const resizeImageProduct = asynchandler(async (req, res, next) => {
-  // 1) ImageCover proccesing by SHARP
+  // 1) ImageCover processing by SHARP
   if (req.files.imageCover) {
     const imageCoverFilename = `products-${uuidv4()}-${Date.now()}-cover.jpeg`;
     await sharp(req.files.imageCover[0].buffer)
       .resize(2000, 1333)
       .toFormat("jpeg")
       .jpeg({ quality: 95 })
-      .toFile(`uploads/products/${imageCoverFilename}`);
-    // save imageCover in DB
+      .toFile(`upload/products/${imageCoverFilename}`);
+    // save ImageCover in DB
     req.body.imageCover = imageCoverFilename;
   }
-  // 2) Images proccesing by SHARP
+  // 2) Images processing by SHARP
   if (req.files.images) {
-    const listArrImgs = req.files.images;
+    const imgsList = req.files.images;
     req.body.images = [];
     await Promise.all(
-      listArrImgs.map(async (Img, index) => {
-        const imageFilename = `products-${uuidv4()}-${Date.now()}-${index + 1}.jpeg`;
-        await sharp(Img.buffer)
+      imgsList.map(async (img, index) => {
+        const imagesFilename = `products-${uuidv4()}-${Date.now()}-${index + 1}.jpeg`;
+        await sharp(img.buffer)
           .resize(2000, 1333)
           .toFormat("jpeg")
           .jpeg({ quality: 95 })
-          .toFile(`uploads/products/${imageFilename}`);
-        // save imageCover in DB
-        req.body.images.push(imageFilename);
+          .toFile(`upload/products/${imagesFilename}`);
+        // save Images in DB
+        req.body.images.push(imagesFilename);
       })
     );
     next();

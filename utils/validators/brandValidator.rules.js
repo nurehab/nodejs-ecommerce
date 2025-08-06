@@ -1,6 +1,6 @@
 // RULES
 const { check } = require("express-validator");
-const { default: slugify } = require("slugify");
+const slugify= require("slugify");
 const validatorMiddleware = require("../../middlewares/validator.middleware");
 
 exports.validatorGetBrand = [

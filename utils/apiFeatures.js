@@ -10,8 +10,8 @@ class ApiFeatures {
     exludesFields.forEach((fields) => delete queryStringObj[fields]);
     let queryStr = JSON.stringify(queryStringObj);
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
-    console.log(queryStr);
-    console.log(JSON.parse(queryStr));
+    // console.log(queryStr);
+    // console.log(JSON.parse(queryStr));
     this.mongooseQuery = this.mongooseQuery.find(JSON.parse(queryStr));
     return this;
   }
