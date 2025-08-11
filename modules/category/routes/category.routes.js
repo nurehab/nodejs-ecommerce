@@ -32,7 +32,7 @@ const authService = require("../../User/controller/Auth.user.controller")
 app
   .route("/")
   .get(getCategories)
-  .post(authService.protect,uploadCategories,resizeImg, validatorCreateCategry, createCategory);
+  .post(authService.protect,authService.allowedTo("manger","admin"),uploadCategories,resizeImg, validatorCreateCategry, createCategory);
 app.use("/:categoryId/subCategories", subCategoryRoute);
 
 app

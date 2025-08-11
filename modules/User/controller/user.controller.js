@@ -63,8 +63,10 @@ const changeUserPassowrd = asynchandler(async (req, res, next) => {
   const document = await user.findByIdAndUpdate(
     id,
     {
-      password: await bcrypt.hash(password,12)
+      password: await bcrypt.hash(password, 12),
+      passwordChanged: Date.now(),
     },
+
     {
       new: true,
     }

@@ -9,14 +9,16 @@ const category = require("../Model/category.model");
 
 const resizeImg = asynchandler(async (req, res, next) => {
   const filename = `category-${uuidv4()}-${Date.now()}.jpeg`;
-  await sharp(req.file.buffer)
-    .resize(600, 600)
-    .toFormat("jpeg")
-    .jpeg({ quality: 90 })
-    .toFile(`uploads/categories/${filename}`);
+  if (req.file) {
+    await sharp(req.file.buffer)
+      .resize(600, 600)
+      .toFormat("jpeg")
+      .jpeg({ quality: 90 })
+      .toFile(`uploads/categories/${filename}`);
 
-  // save Imagename in DB
-  req.body.image = filename;
+    // save Imagename in DB
+    req.body.image = filename;
+  }
 
   next();
 });
