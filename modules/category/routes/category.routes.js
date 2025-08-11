@@ -17,7 +17,10 @@ const {
   validatorDeleteCategry,
 } = require("../../../utils/validators/categoryValidator.rules");
 
+
 const subCategoryRoute = require("./subCategory.routes");
+
+const authService = require("../../User/controller/Auth.user.controller")
 //middleware
 
 // app.get("/getCategories",getCategories)
@@ -29,7 +32,7 @@ const subCategoryRoute = require("./subCategory.routes");
 app
   .route("/")
   .get(getCategories)
-  .post(uploadCategories,resizeImg, validatorCreateCategry, createCategory);
+  .post(authService.protect,uploadCategories,resizeImg, validatorCreateCategry, createCategory);
 app.use("/:categoryId/subCategories", subCategoryRoute);
 
 app
