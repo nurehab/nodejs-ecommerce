@@ -1,13 +1,18 @@
 const app = require("express").Router();
 
-const { signUp, login } = require("../controller/Auth.user.controller");
+const {
+  signUp,
+  login,
+  forgotPassword,
+} = require("../controller/Auth.user.controller");
 
 const {
   signUpValidator,
   loginValidator,
 } = require("../../../utils/validators/authValidator");
 
-app.route("/signup").post(signUpValidator, signUp);
-app.route("/login").post(loginValidator, login);
+app.post("/signup", signUpValidator, signUp);
+app.post("/login", loginValidator, login);
+app.post("/forgetPassword", forgotPassword);
 
 module.exports = app;

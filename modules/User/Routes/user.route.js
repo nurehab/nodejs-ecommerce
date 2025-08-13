@@ -19,17 +19,52 @@ const {
   validatorchangeUserPassword,
 } = require("../../../utils/validators/userValidator.rules");
 
+const authService = require("../controller/Auth.user.controller");
+
 app
   .route("/")
-  .get(getUsers)
-  .post(uploadUserImg, resizeImg, validatorCreateUser, createUser);
-  
-  app.put("/changePassword/:id",validatorchangeUserPassword, changeUserPassowrd);
-  
+  .get(authService.protect, authService.allowedTo("manger", "admin"), getUsers)
+
+  .post(
+    authService.protect,
+    authService.allowedTo("admin"),
+    uploadUserImg,
+    resizeImg,
+    validatorCreateUser,
+    createUser
+  );
+
+app.put(
+  "/changePassword/:id",
+  authService.protect,
+  authService.allowedTo("user","admin","manger"),
+  validatorchangeUserPassword,
+  changeUserPassowrd
+);
+
 app
   .route("/:id")
-  .get(validatorGetUser, getUserById)
-  .put(uploadUserImg, resizeImg, validatorUpdateUser, updateUser)
-  .delete(validatorDeleteUser, deleteUser);
+  .get(
+    authService.protect,
+    authService.allowedTo("admin"),
+    validatorGetUser,
+    getUserById
+  )
+
+  .put(
+    authService.protect,
+    authService.allowedTo("admin"),
+    uploadUserImg,
+    resizeImg,
+    validatorUpdateUser,
+    updateUser
+  )
+
+  .delete(
+    authService.protect,
+    authService.allowedTo("admin"),
+    validatorDeleteUser,
+    deleteUser
+  );
 
 module.exports = app;

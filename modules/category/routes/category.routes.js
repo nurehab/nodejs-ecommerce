@@ -1,6 +1,5 @@
 const app = require("express").Router();
 
-
 const {
   createCategory,
   getCategories,
@@ -17,10 +16,9 @@ const {
   validatorDeleteCategry,
 } = require("../../../utils/validators/categoryValidator.rules");
 
-
 const subCategoryRoute = require("./subCategory.routes");
 
-const authService = require("../../User/controller/Auth.user.controller")
+const authService = require("../../User/controller/Auth.user.controller");
 //middleware
 
 // app.get("/getCategories",getCategories)
@@ -32,13 +30,32 @@ const authService = require("../../User/controller/Auth.user.controller")
 app
   .route("/")
   .get(getCategories)
-  .post(authService.protect,authService.allowedTo("manger","admin"),uploadCategories,resizeImg, validatorCreateCategry, createCategory);
+  .post(
+    authService.protect,
+    authService.allowedTo("manger", "admin"),
+    uploadCategories,
+    resizeImg,
+    validatorCreateCategry,
+    createCategory
+  );
 app.use("/:categoryId/subCategories", subCategoryRoute);
 
 app
   .route("/:id")
   .get(validatorGetCategry, getCategory)
-  .put(uploadCategories, resizeImg, validatorUpdateCategry, updateCategory)
-  .delete(validatorDeleteCategry, deleteCategory);
+  .put(
+    authService.protect,
+    authService.allowedTo("manger", "admin"),
+    uploadCategories,
+    resizeImg,
+    validatorUpdateCategry,
+    updateCategory
+  )
+  .delete(
+    authService.protect,
+    authService.allowedTo("admin"),
+    validatorDeleteCategry,
+    deleteCategory
+  );
 
 module.exports = app;

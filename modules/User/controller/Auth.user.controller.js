@@ -1,7 +1,10 @@
+const crypto = require("crypto");
+
 const asynchandler = require("express-async-handler");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const ApiError = require("../../../utils/apiError");
+const { sendEmail } = require("../../../utils/sendEmail");
 
 const User = require("../Model/user.model");
 
@@ -80,20 +83,78 @@ const protect = asynchandler(async (req, res, next) => {
   next();
 });
 
+// Authorization (user premissions)
 
-const allowedTo = (...roles)  => // ["manger","admin"]
-  asynchandler(async(req,res,next)=>{
+const allowedTo = (
+  ...roles // ["manger","admin","user"]
+) =>
+  asynchandler(async (req, res, next) => {
     // acces Roles
     // access user regiser (req.user = currentUser)
-    if(!roles.includes(req.user.role)){
-      return next (new ApiError("you don't have access on this Route",403))
+    if (!roles.includes(req.user.role)) {
+      return next(new ApiError("you don't have access on this Route", 403));
     }
-    next()
-  })
+    next();
+  });
+
+// Forgot Password => 1)send Reset Code to Email - 2) verify Reset Code that sent Email - 3) set The new Password
+// 1) send Reset Code To Email : a) check Email , b) Generate Reset Code 3ebara 3n 6 arkam w yetsave f el db , c) send el reset code LL email
+
+const forgotPassword = asynchandler(async (req, res, next) => {
+  // a)
+  const { email } = req.body;
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    return next(new ApiError(`There is no User with that email ${email}`, 404));
+  }
+
+  //b)
+  const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+  // saved Hashed Reset code in DB
+  const hashedResetCode = crypto
+    .createHash("sha256")
+    .update(resetCode)
+    .digest("hex");
+
+  const hashedResetCodeExpire = Date.now() + 10 * 60 * 1000;
+
+  const hashedResetCodeVerify = false;
+
+  user.hashedResetCode = hashedResetCode;
+  user.hashedResetCodeExpire = hashedResetCodeExpire;
+  user.hashedResetCodeVerify = hashedResetCodeVerify;
+
+  await user.save();
+
+  // c)
+  const message = `Hi ${user.name},\n we recived a request  to reset the password on yoyr E-shop Account. \n ${resetCode} \n Enter this OTP to complete the reset.\n Thanks for helping us keep your account secure.\n The E-shop Team`;
+  try {
+    await sendEmail({
+      from: "E-shop <fllstknour7@gmail.com>",
+      email: user.email,
+      subject: "Your Password reset Code (Valid for 10 min)",
+      message,
+    });
+  } catch (err) {
+    user.hashedResetCode = undefined;
+    user.hashedResetCodeExpire = undefined;
+    user.hashedResetCodeVerify = undefined;
+
+    await user.save();
+
+    return next(new ApiError("There is an error in sending Email", 500));
+  }
+  res
+    .status(200)
+    .json({ status: "success", message: "Reset code sent to email" });
+});
 
 module.exports = {
   signUp,
   login,
   protect,
-  allowedTo
+  allowedTo,
+  forgotPassword,
 };
