@@ -132,7 +132,6 @@ const forgotPassword = asynchandler(async (req, res, next) => {
   const message = `Hi ${user.name},\n we recived a request  to reset the password on yoyr E-shop Account. \n ${resetCode} \n Enter this OTP to complete the reset.\n Thanks for helping us keep your account secure.\n The E-shop Team`;
   try {
     await sendEmail({
-      from: "E-shop <fllstknour7@gmail.com>",
       email: user.email,
       subject: "Your Password reset Code (Valid for 10 min)",
       message,
