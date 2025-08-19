@@ -9,10 +9,11 @@ const { sendEmail } = require("../../../utils/sendEmail");
 const User = require("../Model/user.model");
 
 // we will create method for CreateToken cuz duplicating in handlers
-const createToken = (payload) =>
-  jwt.sign({ userId: payload }, process.env.JWT_SECRET_KEY, {
-    expiresIn: process.env.JWT_EXPIRE_TIME,
-  });
+const createToken = require("../../../utils/Token/createToken")
+
+const hashedCode = (code) => {
+  crypto.createHash("sha256").update(code).digest("hex");
+};
 
 // Authentication Handlers (sign up , Login)
 
@@ -62,7 +63,7 @@ const protect = asynchandler(async (req, res, next) => {
   }
   // 2) VERIFY token no change happens OR EXPIRE token
   const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-  // 3) check user mn khlal el user._id (decoded.userId) 3lshan feeh cases keter momkn te7sl f ywslna enna ne3l login mn tany
+  // 3) check user mn khlal el user._id (decoded.userId) 3lshan feeh cases keter momkn te7sl f ywslna enna ne3ml login mn tany
   const currentUser = await User.findById(decoded.userId);
   if (!currentUser) {
     return next(
@@ -86,7 +87,7 @@ const protect = asynchandler(async (req, res, next) => {
 // Authorization (user premissions)
 
 const allowedTo = (
-  ...roles // ["manger","admin","user"]
+  ...roles // ["manger","admin"]
 ) =>
   asynchandler(async (req, res, next) => {
     // acces Roles
@@ -97,8 +98,14 @@ const allowedTo = (
     next();
   });
 
-// Forgot Password => 1)send Reset Code to Email - 2) verify Reset Code that sent Email - 3) set The new Password
-// 1) send Reset Code To Email : a) check Email , b) Generate Reset Code 3ebara 3n 6 arkam w yetsave f el db , c) send el reset code LL email
+// ------ CYCLE OF FORGET PASSWORD ------ THREE HANDLERS
+
+// Forgot Password => 1) send Reset Code to Email - 2) verify Reset Code that sent Email - 3) set The new Password
+
+// 1]] send Reset Code To Email :
+//  a) check Email ,
+//  b) Generate Reset Code 3ebara 3n 6 arkam w yetsave f el db ,
+//  c) send el reset code LL email
 
 const forgotPassword = asynchandler(async (req, res, next) => {
   // a)
@@ -113,10 +120,7 @@ const forgotPassword = asynchandler(async (req, res, next) => {
   const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
 
   // saved Hashed Reset code in DB
-  const hashedResetCode = crypto
-    .createHash("sha256")
-    .update(resetCode)
-    .digest("hex");
+  const hashedResetCode = hashedCode(resetCode);
 
   const hashedResetCodeExpire = Date.now() + 10 * 60 * 1000;
 
@@ -150,10 +154,58 @@ const forgotPassword = asynchandler(async (req, res, next) => {
     .json({ status: "success", message: "Reset code sent to email" });
 });
 
+// 2]] Handler => verify Reset Code
+const verifyResetpasswordCode = asynchandler(async (req, res, next) => {
+  // 1) check user based on hash reset Code
+  const verifyHashedResetCode = hashedCode(req.body.resetCode);
+
+  const user = await User.findOne({
+    hashedResetCode: verifyHashedResetCode,
+    hashedResetCodeExpire: { $gt: Date.now() },
+  });
+  if (!user) {
+    return next(new ApiError("Inavlid Verify Reset code or Expired", 500));
+  }
+
+  // 2) valid Reset Code
+  user.hashedResetCodeVerify = true;
+  await user.save();
+
+  res.status(200).json({ status: "sucess" });
+});
+
+// 3]] Handler => reset password
+const resetPassword = asynchandler(async (req, res, next) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) {
+    return next(new ApiError(`There is no User with that email ${email}`, 404));
+  }
+  if (!user.hashedResetCodeVerify) {
+    return next(new ApiError("This user is not valid", 500));
+  }
+  user.password = req.body.newPassword;
+  user.hashedResetCode = undefined;
+  user.hashedResetCodeExpire = undefined;
+  user.hashedResetCodeVerify = undefined;
+  await user.save();
+
+  // if everything is ok , GENERATE NEW TOKEN
+  const token = createToken(user._id);
+
+  res.status(200).json({ status: "sucess", Token: token });
+});
+
+
+
+
 module.exports = {
   signUp,
   login,
   protect,
   allowedTo,
   forgotPassword,
+  verifyResetpasswordCode,
+  resetPassword,
+  
 };

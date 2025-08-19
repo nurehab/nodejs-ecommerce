@@ -147,3 +147,29 @@ exports.validatorDeleteUser = [
     .withMessage("invalid User Id format"),
   validatorMiddleware,
 ];
+
+
+exports.validatorUpdateUserLogged = [
+  check("name").custom((val, { req }) => {
+    req.body.slug = slugify(val);
+    return true;
+  }),
+  check("email")
+    .notEmpty()
+    .withMessage("Please enter a valid email")
+    .isEmail()
+    .withMessage("Invalid Email ")
+    .custom(async (val) => {
+      const user = await User.findOne({ email: val });
+      if (user) {
+        return Promise.reject(new ApiError("Email already is used", 400));
+      }
+    }),
+
+  check("phone")
+    .optional()
+    .isMobilePhone(["ar-EG", "ar-SA"])
+    .withMessage("Invalid phone number only acetpted EGY & SA phone numbers"),
+
+  validatorMiddleware,
+];

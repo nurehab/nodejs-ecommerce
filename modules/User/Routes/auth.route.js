@@ -4,6 +4,8 @@ const {
   signUp,
   login,
   forgotPassword,
+  verifyResetpasswordCode,
+  resetPassword
 } = require("../controller/Auth.user.controller");
 
 const {
@@ -14,5 +16,7 @@ const {
 app.post("/signup", signUpValidator, signUp);
 app.post("/login", loginValidator, login);
 app.post("/forgetPassword", forgotPassword);
+app.post("/verifyRestPasswordCode", verifyResetpasswordCode);
+app.put("/resetPassword", resetPassword);
 
 module.exports = app;

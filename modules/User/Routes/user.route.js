@@ -9,6 +9,10 @@ const {
   uploadUserImg,
   resizeImg,
   changeUserPassowrd,
+  getUserLogged,
+  changeUserPassowrdLogged,
+  updateGetUserLogged,
+  deactiveLoggedUser
 } = require("../controller/user.controller");
 
 const {
@@ -17,54 +21,40 @@ const {
   validatorUpdateUser,
   validatorDeleteUser,
   validatorchangeUserPassword,
+  validatorUpdateUserLogged,
 } = require("../../../utils/validators/userValidator.rules");
 
 const authService = require("../controller/Auth.user.controller");
 
+app.use(authService.protect);
+
+// LOGGED USER
+app.get("/getMe", getUserLogged, getUserById);
+app.put(
+  "/changeMyPassword",
+  validatorchangeUserPassword,
+  changeUserPassowrdLogged
+);
+app.put("/updatedMe", validatorUpdateUserLogged, updateGetUserLogged);
+app.delete("/deactiveMe", deactiveLoggedUser);
+
+// USER FOR (ADMIN)
+app.use(authService.allowedTo("manger", "admin"));
+
 app
   .route("/")
-  .get(authService.protect, authService.allowedTo("manger", "admin"), getUsers)
+  .get(getUsers)
 
-  .post(
-    authService.protect,
-    authService.allowedTo("admin"),
-    uploadUserImg,
-    resizeImg,
-    validatorCreateUser,
-    createUser
-  );
+  .post(uploadUserImg, resizeImg, validatorCreateUser, createUser);
 
-app.put(
-  "/changePassword/:id",
-  authService.protect,
-  authService.allowedTo("user","admin","manger"),
-  validatorchangeUserPassword,
-  changeUserPassowrd
-);
+app.put("/changePassword/:id", validatorchangeUserPassword, changeUserPassowrd);
 
 app
   .route("/:id")
-  .get(
-    authService.protect,
-    authService.allowedTo("admin"),
-    validatorGetUser,
-    getUserById
-  )
+  .get(validatorGetUser, getUserById)
 
-  .put(
-    authService.protect,
-    authService.allowedTo("admin"),
-    uploadUserImg,
-    resizeImg,
-    validatorUpdateUser,
-    updateUser
-  )
+  .put(uploadUserImg, resizeImg, validatorUpdateUser, updateUser)
 
-  .delete(
-    authService.protect,
-    authService.allowedTo("admin"),
-    validatorDeleteUser,
-    deleteUser
-  );
+  .delete(validatorDeleteUser, deleteUser);
 
 module.exports = app;
