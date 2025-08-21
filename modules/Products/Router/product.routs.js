@@ -18,7 +18,10 @@ const {
 } = require("../../../utils/validators/productValidator.rules");
 
 const authService = require("../../User/controller/Auth.user.controller");
+const reviewRoute = require("../../Review/Routes/review.route")
 
+// NESTED ROUTE ==> api/v1/product/productId/reviews
+app.use("/:productId/reviews",reviewRoute)
 app
   .route("/")
   .get(getProducts)

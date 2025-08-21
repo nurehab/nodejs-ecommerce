@@ -49,7 +49,7 @@ const createProduct = factory.createOne(product);
 
 const getProducts = factory.getAll(product, "products");
 
-const getProduct = factory.getOne(product);
+const getProduct = factory.getOne(product,"reviews");
 
 const deleteProduct = factory.deleteOne(product);
 

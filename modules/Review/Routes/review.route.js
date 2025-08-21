@@ -1,4 +1,4 @@
-const app = require("express").Router();
+const app = require("express").Router({mergeParams:true});
 
 const {
   createReview,
@@ -6,26 +6,33 @@ const {
   getReviewById,
   updateReview,
   deleteReview,
+  createFilterObject,
+  setProductIdInsteadOfBody,
 } = require("../controller/review.controller");
 
-// const {
-//   validatorGetBrand,
-//   validatorCreateBrand,
-//   validatorUpdateBrand,
-//   validatorDeleteBrand,
-// } = require("../../../utils/validators/brandValidator.rules");
+const {
+  validatorCreateReview,
+  validatorUpdateReview,
+  validatorDeleteReview,
+} = require("../../../utils/validators/reviewValidator.rules");
 
 const authService = require("../../User/controller/Auth.user.controller");
 
+app.get("/",createFilterObject, getReviews);
+app.get("/:id", createFilterObject, getReviewById);
+
 app.use(authService.protect);
+
 app
   .route("/")
-  .get(getReviews)
-  .post(authService.allowedTo("user"), createReview);
+  .post(authService.allowedTo("user"), validatorCreateReview,setProductIdInsteadOfBody, createReview);
 app
   .route("/:id")
-  .get(getReviewById)
-  .put(authService.allowedTo("user"), updateReview)
-  .delete(authService.allowedTo("user", "admin", "manger"), deleteReview);
+  .put(authService.allowedTo("user"), validatorUpdateReview, updateReview)
+  .delete(
+    authService.allowedTo("user", "admin", "manger"),
+    validatorDeleteReview,
+    deleteReview
+  );
 
 module.exports = app;

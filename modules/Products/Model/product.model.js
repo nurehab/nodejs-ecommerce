@@ -69,8 +69,19 @@ const productSchema = new mongoose.Schema(
       default: 0,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    // To able virtual poptulate
+    toJSON: { virtuals: true }, 
+    toObject: { virtuals: true },
+  }
 );
+
+productSchema.virtual("reviews", {
+  ref: "Review",
+  foreignField: "product",
+  localField: "_id",
+});
 
 productSchema.pre(/^find/, function (next) {
   this.populate({
@@ -80,30 +91,28 @@ productSchema.pre(/^find/, function (next) {
   next();
 });
 
-const setImagesURL = (doc) =>{
-  if(doc.imageCover){
-    const setImgCoverURL = `${process.env.BASE_URL}/products/${doc.imageCover}`
-    doc.imageCover = setImgCoverURL
+const setImagesURL = (doc) => {
+  if (doc.imageCover) {
+    const setImgCoverURL = `${process.env.BASE_URL}/products/${doc.imageCover}`;
+    doc.imageCover = setImgCoverURL;
   }
-  if(doc.images){
+  if (doc.images) {
     const images = [];
-    doc.images.forEach(image => {
+    doc.images.forEach((image) => {
       const setImgsURL = `${process.env.BASE_URL}/products/${image}`;
       images.push(setImgsURL);
     });
-    doc.images = images
+    doc.images = images;
   }
-}
+};
 
-productSchema.post('init',(doc)=>{
-  setImagesURL(doc)
-})
+productSchema.post("init", (doc) => {
+  setImagesURL(doc);
+});
 
 productSchema.post("save", (doc) => {
   setImagesURL(doc);
 });
-
-
 
 const productModel = mongoose.model("product", productSchema);
 

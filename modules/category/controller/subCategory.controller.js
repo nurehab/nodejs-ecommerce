@@ -4,14 +4,14 @@ const subCategory = require("../Model/subCategory.model");
 
 // Nested Route (Post/Create)
 const setCategoryIdInsteadOFbody = (req, res, next) => {
-  if (!req.body.Category) req.body.Category = req.params.categoryId;
+  if (!req.body.category) req.body.category = req.params.categoryId;
   next();
 };
 
 // Nested Route (Get)
 const createFilterObject = (req, res, next) => {
   let filterObject = {};
-  if (req.params.categoryId) filterObject = { Category: req.params.categoryId };
+  if (req.params.categoryId) filterObject = { category: req.params.categoryId };
   req.filterObj = filterObject;
   next();
 };
