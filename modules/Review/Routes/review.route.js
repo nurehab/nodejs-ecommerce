@@ -25,7 +25,12 @@ app.use(authService.protect);
 
 app
   .route("/")
-  .post(authService.allowedTo("user"), validatorCreateReview,setProductIdInsteadOfBody, createReview);
+  .post(
+    authService.allowedTo("user"),
+    setProductIdInsteadOfBody,
+    validatorCreateReview,
+    createReview
+  );
 app
   .route("/:id")
   .put(authService.allowedTo("user"), validatorUpdateReview, updateReview)

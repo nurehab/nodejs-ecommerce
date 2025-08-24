@@ -3,26 +3,26 @@ const asynchandler = require("express-async-handler");
 const factory = require("../../../utils/handlerFactory");
 const Review = require("../Model/reviewModel");
 
-
-
-// create ==> Nested route about creating review through productId 
-const setProductIdInsteadOfBody = (req,res,next) =>{
-  if(!req.body.product){
-    req.body.product = req.params.productId
+// create ==> Nested route about creating review through productId
+const setProductIdInsteadOfBody = (req, res, next) => {
+  if (!req.body.product) {
+    req.body.product = req.params.productId;
   }
-  next()
-}
+  if (!req.body.user) {
+    req.body.user = req.user._id ;
+  }
+  next();
+};
 
 // get ==> Nested route through filteration
-const createFilterObject = (req,res,next) =>{
-  let filterObject = {}
-  if(req.params.productId){
+const createFilterObject = (req, res, next) => {
+  let filterObject = {};
+  if (req.params.productId) {
     filterObject = { product: req.params.productId };
   }
-  req.filterObj = filterObject
+  req.filterObj = filterObject;
   next();
-}
-
+};
 
 const createReview = factory.createOne(Review);
 

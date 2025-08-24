@@ -14,7 +14,7 @@ exports.validatorCreateReview = [
     .isMongoId()
     .withMessage("Review must belong to user")
     .custom(async (val, { req }) => {
-      if (val !== req.user._id.toString()) {
+      if (val.toString() !== req.user._id.toString()) {
         throw new Error("You can only create reviews for yourself");
       }
       return true;
