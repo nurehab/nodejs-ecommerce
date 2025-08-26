@@ -78,7 +78,7 @@ const productSchema = new mongoose.Schema(
 );
 
 productSchema.virtual("reviews", {
-  ref: "Review",
+  ref: "Review", 
   foreignField: "product",
   localField: "_id",
 });

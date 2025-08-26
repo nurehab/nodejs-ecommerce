@@ -15,6 +15,7 @@ const reviewSchema = new mongoose.Schema(
       ref: "User",
       required: [true, "Review must belong to user"],
     },
+    // parent ref (one to Many)
     product: {
       type: mongoose.Schema.ObjectId,
       ref: "product",
@@ -23,6 +24,11 @@ const reviewSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+reviewSchema.pre(/^find/, function (next) {
+  this.populate({ path: "user", select: "name" });
+  next();
+});
 
 // we create method for => calcAvgAndquantityRatings
 reviewSchema.statics.calcAvgAndQuantityRatings = async function (productId) {
@@ -56,9 +62,10 @@ reviewSchema.post("save", function (next) {
   this.constructor.calcAvgAndQuantityRatings(this.product);
 });
 
-reviewSchema.pre(/^find/, function (next) {
-  this.populate({ path: "user", select: "name" });
-  next();
+reviewSchema.post(/^findOneAnd/, async (doc) => {
+  if (doc) {
+    await doc.constructor.calcAvgAndQuantityRatings(doc.product);
+  }
 });
 
 const reviewModel = mongoose.model("Review", reviewSchema);

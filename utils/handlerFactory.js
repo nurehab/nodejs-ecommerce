@@ -7,7 +7,7 @@ const deleteOne = (Model) =>
     const { id } = req.params;
     const document = await Model.findByIdAndDelete(id);
     if (document) {
-      return res.status(201).json({ Deleted: "Deleted" });
+      return res.status(200).json({ Deleted: "Deleted" });
     }
     return next(new ApiError(`Not found Product for this : ${id}`, 404));
   });
@@ -19,6 +19,8 @@ const updateOne = (Model) =>
       new: true,
     });
     if (document) {
+      // trigger "save" event for mongoose middleware
+      document.save();
       return res.status(201).json({ newDocument: document });
     }
     return next(new ApiError(`Not found document for this : ${id}`, 404));
