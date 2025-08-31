@@ -1,10 +1,20 @@
 const path = require("path");
 
 const express = require("express");
+const cors = require("cors");
+const compression = require("compression");
 const morgan = require("morgan");
 require("dotenv").config();
 
 const app = express();
+
+// cors setting (Other domains to access ur app)
+app.use(cors());
+app.options("*", cors());
+
+// Compression for response (compress all response)
+app.use(compression());
+
 //Middlware
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "uploads")));
@@ -19,7 +29,6 @@ if (process.env.NODE_ENV === "development") {
 const dbConnection = require("./config/database.config");
 
 dbConnection();
-
 
 const ApiError = require("./utils/apiError");
 const globalError = require("./middlewares/error.middlware");
