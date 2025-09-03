@@ -3,6 +3,7 @@ const path = require("path");
 const express = require("express");
 // const cors = require("cors");
 const compression = require("compression");
+const rateLimit = require("express-rate-limit");
 const morgan = require("morgan");
 require("dotenv").config();
 
@@ -27,7 +28,7 @@ app.post(
 );
 
 //Middlware
-app.use(express.json());
+app.use(express.json({ limit: "20kb" }));
 app.use(express.static(path.join(__dirname, "uploads")));
 
 const mountRoutes = require("./utils/mountroutes");
@@ -36,6 +37,19 @@ if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
   console.log(`mode : ${process.env.NODE_ENV}`);
 }
+
+// rate limiter
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 5, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+  message:"Too many accounts created from this ip, please try again after an fifteen minutes"
+});
+
+// Apply the rate limiting middleware to all requests.
+app.use("/api",limiter);
+
+
+
 // Connect with db
 const dbConnection = require("./config/database.config");
 

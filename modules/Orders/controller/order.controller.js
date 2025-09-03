@@ -147,6 +147,7 @@ const createCartOrder = async (session) => {
       },
     }));
     await Product.bulkWrite(bulkOptions, {});
+    
     // 5] clear cart depend on cartId
     await Cart.findByIdAndDelete(cartId);
   }
