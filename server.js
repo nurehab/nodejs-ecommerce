@@ -1,19 +1,30 @@
 const path = require("path");
 
 const express = require("express");
-const cors = require("cors");
+// const cors = require("cors");
 const compression = require("compression");
 const morgan = require("morgan");
 require("dotenv").config();
 
 const app = express();
 
+const {
+  webhookCheckOut,
+} = require("./modules/Orders/controller/order.controller");
+
 // cors setting (Other domains to access ur app)
-app.use(cors());
-app.options("*", cors());
+// app.use(cors());
+// app.options("*", cors());
 
 // Compression for response (compress all response)
 app.use(compression());
+
+// checkout webhook
+app.post(
+  "/webhook-checkout",
+  express.raw({ type: "application/json" }),
+  webhookCheckOut
+);
 
 //Middlware
 app.use(express.json());
