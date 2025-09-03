@@ -18,8 +18,15 @@ class ApiFeatures {
 
   sort() {
     if (this.queryString.sort) {
-      const sortBy = this.queryString.sort.split(",").join(" ");
+      let sortBy = this.queryString.sort;
+      
+      if (Array.isArray(sortBy)) {
+        sortBy = sortBy.join(",");
+      }
+
+      sortBy = sortBy.split(",").join(" ");
       console.log(sortBy);
+
       this.mongooseQuery = this.mongooseQuery.sort(sortBy);
     } else {
       this.mongooseQuery = this.mongooseQuery.sort("-createdAt");

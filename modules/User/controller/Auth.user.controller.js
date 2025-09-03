@@ -6,10 +6,12 @@ const jwt = require("jsonwebtoken");
 const ApiError = require("../../../utils/apiError");
 const { sendEmail } = require("../../../utils/sendEmail");
 
+const { sanitizeData } = require("../../../utils/sanitizeData");
+
 const User = require("../Model/user.model");
 
 // we will create method for CreateToken cuz duplicating in handlers
-const createToken = require("../../../utils/Token/createToken")
+const createToken = require("../../../utils/Token/createToken");
 
 const hashedCode = (code) => {
   crypto.createHash("sha256").update(code).digest("hex");
@@ -23,7 +25,7 @@ const signUp = asynchandler(async (req, res, next) => {
   const { name, email, password } = req.body;
   const user = await User.create({ name, email, password });
   const token = createToken(user._id);
-  return res.status(201).json({ data: user, token });
+  return res.status(201).json({ data: sanitizeData(user), token });
 });
 
 // 2] LOGIN
@@ -196,9 +198,6 @@ const resetPassword = asynchandler(async (req, res, next) => {
   res.status(200).json({ status: "sucess", Token: token });
 });
 
-
-
-
 module.exports = {
   signUp,
   login,
@@ -207,5 +206,4 @@ module.exports = {
   forgotPassword,
   verifyResetpasswordCode,
   resetPassword,
-  
 };

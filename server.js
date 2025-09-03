@@ -1,10 +1,13 @@
 const path = require("path");
 
 const express = require("express");
-// const cors = require("cors");
+const morgan = require("morgan");
 const compression = require("compression");
 const rateLimit = require("express-rate-limit");
-const morgan = require("morgan");
+const hpp = require("hpp");
+const mongoSanitize = require("express-mongo-sanitize");
+
+
 require("dotenv").config();
 
 const app = express();
@@ -13,6 +16,7 @@ const {
   webhookCheckOut,
 } = require("./modules/Orders/controller/order.controller");
 
+// const cors = require("cors");
 // cors setting (Other domains to access ur app)
 // app.use(cors());
 // app.options("*", cors());
@@ -38,17 +42,40 @@ if (process.env.NODE_ENV === "development") {
   console.log(`mode : ${process.env.NODE_ENV}`);
 }
 
+
+// To remove data using these defaults: To apply data sanitization
+app.use(mongoSanitize());
+
+
+
 // rate limiter
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   limit: 5, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
-  message:"Too many accounts created from this ip, please try again after an fifteen minutes"
+  message:
+    "Too many accounts created from this ip, please try again after an fifteen minutes",
 });
 
 // Apply the rate limiting middleware to all requests.
-app.use("/api",limiter);
+app.use("/api", limiter);
+
+// Middleware to protect against HTTP parameter pollution attacks ==> product?sort=price&sort=sold ==> ['price','sold']
+app.use(
+  hpp({
+    whitelist: [
+      "price",
+      "sold",
+      "quantity",
+      "ratingsAverage",
+      "ratingsQuantity",
+    ],
+  })
+);
 
 
+
+// connect with Routes (Mount Routes) - - - bab3tlo el express app => const app = express()
+mountRoutes(app);
 
 // Connect with db
 const dbConnection = require("./config/database.config");
@@ -57,10 +84,6 @@ dbConnection();
 
 const ApiError = require("./utils/apiError");
 const globalError = require("./middlewares/error.middlware");
-
-// connect with Routes (Mount Routes) - - - bab3tlo el express app => const app = express()
-
-mountRoutes(app);
 
 app.all(/^.*$/, (req, res, next) => {
   next(new ApiError(`Can't found this route : ${req.originalUrl}`), 400);
